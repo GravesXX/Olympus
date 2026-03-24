@@ -1,207 +1,259 @@
 # OLYMPUS
 
-An autonomous career intelligence system built on [OpenClaw](https://openclaw.ai). Four AI agents coordinate through Discord to automate the full career pipeline — from job discovery to interview preparation.
+Autonomous career intelligence system. Four AI agents coordinate through Discord to automate the full career pipeline — from job discovery to interview preparation.
 
-Built by Isaac Xia.
+```
+Job posted                          You get
+on career page                      the interview
+     │                                   │
+     ▼                                   ▼
+  ARTEMIS ──► ATHENA ──► ARTEMIS ──► HERMES
+  discovers    tailors    applies     prepares
+  & scores     resume     & tracks    mock
+  the job      + cover    response    interviews
+               letter
+                     ▲
+                     │
+                 ABSOLUTE
+                orchestrates
+                everything
+```
+
+Built on [OpenClaw](https://openclaw.ai). All agents are TypeScript plugins backed by Obsidian vault storage.
+
+---
+
+## Quick Start
+
+```bash
+# 1. Clone
+git clone https://github.com/GravesXX/Olympus.git
+cd Olympus
+
+# 2. Install everything (agents, dependencies, Playwright)
+./install.sh
+
+# 3. Configure OpenClaw with your Discord bot tokens
+node scripts/configure-openclaw.js
+
+# 4. Start
+openclaw start
+```
 
 ---
 
 ## Architecture
 
 ```
-                              ┌─────────────────────────┐
-                              │       ABSOLUTE           │
-                              │    The Orchestrator      │
-                              │                         │
-                              │  Plans · Delegates       │
-                              │  Reviews · Synthesizes   │
-                              └────────┬────────────────┘
-                                       │
-                     ┌─────────────────┼─────────────────┐
-                     │                 │                  │
-          ┌──────────▼───────┐ ┌───────▼────────┐ ┌──────▼─────────┐
-          │     ATHENA       │ │    HERMES       │ │    ARTEMIS     │
-          │  The Strategist  │ │   The Herald    │ │  The Huntress  │
-          │                  │ │                 │ │                │
-          │ Resume tailoring │ │ Mock interviews │ │ Daily job scan │
-          │ Achievement bank │ │ 7-dim scoring   │ │ Career page    │
-          │ Cover letters    │ │ Drill coaching  │ │   APIs         │
-          │ Soft skills KB   │ │ Performance     │ │ Confidence     │
-          │ ATS optimization │ │ tracking        │ │   scoring      │
-          └──────────▲───────┘ └───────▲────────┘ │ Auto-fill      │
-                     │                 │          │   forms        │
-                     │                 │          │ Email monitor  │
-                     └─────────┬───────┘          │ Application    │
-                               │                  │   tracking     │
-                    ┌──────────┴──┐               └───────┬────────┘
-                    │  OBSIDIAN   │                        │
-                    │  VAULT      │    9:00 AM ET ─────────┘
-                    │             │         │
-                    │  Shared     │         ▼
-                    │  knowledge  │    Discord
-                    │  base       │    #daily-job-report
-                    └─────────────┘
-          │     ARTEMIS      │
-          │   The Huntress   │
-          │                  │
-          │ Daily job scan   │──── 9:00 AM ET ──── Discord #daily-job-report
-          │ Career page APIs │
-          │ Confidence score │
-          │ Auto-fill forms  │
-          │ Email monitoring │
-          │ Application      │
-          │ tracking         │
-          └──────────────────┘
+                         ┌─────────────────────┐
+                         │     ABSOLUTE         │
+                         │   The Orchestrator   │
+                         │   16 tools           │
+                         └───┬─────┬────────┬───┘
+                             │     │        │
+              ┌──────────────┘     │        └──────────────┐
+              │                    │                       │
+   ┌──────────▼────────┐ ┌────────▼─────────┐ ┌───────────▼──────┐
+   │      ATHENA        │ │     HERMES        │ │     ARTEMIS       │
+   │  The Strategist    │ │   The Herald      │ │   The Huntress    │
+   │  20 tools          │ │   14 tools        │ │   24 tools        │
+   │                    │ │                   │ │                   │
+   │ Resume tailoring   │ │ Mock interviews   │ │ Daily job scan    │
+   │ Achievement bank   │ │ 7-dim scoring     │ │ Confidence score  │
+   │ Cover letters      │ │ Targeted drills   │ │ Auto-fill forms   │
+   │ ATS optimization   │ │ Performance track │ │ Email monitoring  │
+   │ Soft skills KB     │ │                   │ │ Application track │
+   └────────────────────┘ └───────────────────┘ └───────────────────┘
 ```
 
 ## The Pipeline
 
 ```
-                    DAILY (automated)                         ON DEMAND (human-triggered)
-                    ─────────────────                         ──────────────────────────
+  ARTEMIS                ATHENA               ARTEMIS              HERMES
+  ───────                ──────               ───────              ──────
 
-  ┌───────────────────────────────────────────┐
-  │  ARTEMIS scans 12 company career pages    │
-  │                                           │
-  │  APIs:  Amazon · Stripe · Anthropic       │
-  │         Vercel · Uber · AMD               │
-  │         Wealthsimple · Cohere             │
-  │                                           │
-  │  Playwright: Google · Apple               │
-  │         Microsoft · Meta · IBM            │
-  └─────────────────┬─────────────────────────┘
-                    │
-                    ▼
-  ┌───────────────────────────────────────────┐
-  │  FILTER                                   │
-  │  Location: Ontario / Canada / Remote-CA   │
-  │  Title: engineer / developer / SWE / SDE  │
-  │  Level: junior → senior (no staff+)       │
-  └─────────────────┬─────────────────────────┘
-                    │
-                    ▼
-  ┌───────────────────────────────────────────┐
-  │  SCORE (4 dimensions)                     │
-  │  Skills match    40%                      │
-  │  Level match     25%                      │
-  │  Domain          20%                      │
-  │  Experience      15%                      │
-  └─────────────────┬─────────────────────────┘
-                    │
-                    ▼
-  ┌───────────────────────────────────────────┐
-  │  REPORT → Discord #daily-job-report       │
-  │                                           │
-  │  Strong (80+) · Moderate (60-79)          │
-  │  Title · Company · Salary · Location      │
-  │  Score · Requirements · Link              │
-  └─────────────────┬─────────────────────────┘
-                    │
-              Isaac reviews
-                    │
-              "Apply to #3"
-                    │
-                    ▼
-  ┌───────────────────────────────────────────┐
-  │  ATHENA tailors resume + cover letter     │
-  │                                           │
-  │  Achievement bank → JD keyword matching   │
-  │  Soft skills KB → cover letter narrative  │
-  │  ATS optimization → 80%+ match target    │
-  └─────────────────┬─────────────────────────┘
-                    │
-                    ▼
-  ┌───────────────────────────────────────────┐
-  │  ARTEMIS auto-fills application           │
-  │                                           │
-  │  Playwright (headed) → fill form fields   │
-  │  Upload PDF resume · paste cover letter   │
-  │  Answer custom questions via Claude       │
-  │  Screenshot → Discord for review          │
-  └─────────────────┬─────────────────────────┘
-                    │
-              Isaac reviews screenshot
-              "Approve" or "Change X"
-                    │
-                    ▼
-  ┌───────────────────────────────────────────┐
-  │  ARTEMIS submits · tracks · monitors      │
-  │                                           │
-  │  IMAP polling → classify responses        │
-  │  ack · rejection · interview · offer      │
-  │  Auto-update application status           │
-  │  DM Isaac for interviews/offers           │
-  └─────────────────┬─────────────────────────┘
-                    │
-              Interview scheduled
-                    │
-                    ▼
-  ┌───────────────────────────────────────────┐
-  │  HERMES prepares Isaac                    │
-  │                                           │
-  │  Ingests JD · researches company          │
-  │  Plans multi-round mock interviews        │
-  │  Technical · behavioral · system design   │
-  │  7-dimension scoring · targeted drills    │
-  │  Adapts to weak areas                     │
-  └───────────────────────────────────────────┘
+  Scans 12 companies     Tailors resume       Auto-fills form      Ingests JD
+  via APIs + Playwright  from achievement     via Playwright       Researches company
+        │                bank + JD                 │               Plans mock rounds
+        ▼                     │                    ▼               Scores 7 dimensions
+  Filters by:                 ▼               Screenshots form     Drills weak areas
+  - Ontario/Canada       Generates cover      for your review
+  - Engineer/Developer   letter from soft          │
+  - Junior-Senior        skills KB                 ▼
+        │                     │               You: "Approve"
+        ▼                     │                    │
+  Scores (4 dimensions)       │                    ▼
+  Skills   40%                │               Submits application
+  Level    25%                │               Monitors email
+  Domain   20%                │               DMs you for
+  Years    15%                │               interviews/offers
+        │                     │
+        ▼                     │
+  Posts to Discord             │
+  #daily-job-report            │
+        │                     │
+        ▼                     │
+  You: "Apply to #3" ────────►│
 ```
 
-## The Agents
+## Agents
 
 ### Absolute — The Orchestrator
-The omniscient coordinator. Sees all threads, delegates to the right specialist, ensures quality at every step. Named after the commanding deity from Baldur's Gate 3.
-- 16 tools: plan/task management, consultation, quality review, metrics
+Coordinates multi-agent tasks. Plans, delegates, reviews, synthesizes.
 - 7-phase protocol: Plan → Checkpoint → Consult → Delegate → Monitor → Review → Synthesize
-- [github.com/GravesXX/absolute](https://github.com/GravesXX/absolute)
+- 16 MCP tools
 
 ### Athena — The Strategist
-Career intelligence engine. Tracks projects through their lifecycle, extracts achievements, tailors resumes to specific JDs with ATS optimization, generates cover letters informed by a soft skills knowledge base.
-- 20 tools: project lifecycle, achievements, resume tailoring, ATS check, cover letters, soft skills
-- 11 database entities in Obsidian vault
-- [github.com/GravesXX/Athena](https://github.com/GravesXX/Athena)
+Career intelligence engine. Tracks projects, extracts achievements, tailors resumes, generates cover letters.
+- ATS keyword optimization targeting 80%+ match rate
+- Soft skills knowledge base built from cover letters and reflections
+- 20 MCP tools
 
 ### Hermes — The Herald
-Interview preparation coach. Simulates realistic interviews with a senior recruiter persona, scores performance across 7 dimensions, identifies weaknesses, and runs targeted drills.
-- 14 tools: JD analysis, session planning, round conducting, evaluation, performance tracking
-- Modes: Interviewer (neutral, no hints) vs Coach (direct, honest feedback)
-- [github.com/GravesXX/Hermes](https://github.com/GravesXX/Hermes)
+Interview preparation coach. Runs realistic mock interviews, scores across 7 dimensions, targets weaknesses.
+- Dual mode: Interviewer (neutral) vs Coach (direct feedback)
+- 14 MCP tools
 
 ### Artemis — The Huntress
-Automated job hunter. Scrapes career pages daily, scores jobs against the user profile, posts Discord reports, auto-fills applications with browser automation, monitors email for responses.
-- 24 tools: company pool, scanning, reporting, application, tracking, email, credentials
-- Fetches from Greenhouse/Lever/Ashby APIs + company-specific APIs (Amazon, Uber, AMD) + Playwright
-- [github.com/GravesXX/Artemis](https://github.com/GravesXX/Artemis)
+Automated job hunter. Scrapes career pages daily, scores matches, fills applications, monitors responses.
+- API fetchers: Greenhouse, Lever, Ashby, Amazon, Uber, AMD
+- Playwright scrapers: Google, Apple, Microsoft, Meta, IBM
+- 24 MCP tools
+
+## Project Structure
+
+```
+Olympus/
+├── agents/
+│   ├── absolute/           # Orchestrator agent
+│   │   ├── plugin/src/     # TypeScript source
+│   │   └── workspace/      # SOUL.md, AGENTS.md, etc.
+│   ├── athena/             # Career engine agent
+│   │   ├── plugin/src/
+│   │   └── workspace/
+│   ├── hermes/             # Interview coach agent
+│   │   ├── plugin/src/
+│   │   └── workspace/
+│   └── artemis/            # Job hunter agent
+│       ├── plugin/src/
+│       ├── workspace/
+│       └── scripts/        # Seed companies, setup email, etc.
+├── shared/
+│   └── obsidian-adapter/   # Shared Obsidian vault storage adapter
+├── scripts/
+│   └── configure-openclaw.js   # Interactive OpenClaw config generator
+├── install.sh              # One-command setup
+└── README.md
+```
+
+## Setup Guide
+
+### Prerequisites
+
+- macOS (launchd scheduling, Keychain integration)
+- Node.js 20+
+- [OpenClaw](https://openclaw.ai) installed
+- Discord server with admin access
+- Obsidian vault at `~/Documents/Obsidian Vault/`
+
+### Step 1: Install
+
+```bash
+git clone https://github.com/GravesXX/Olympus.git
+cd Olympus
+./install.sh
+```
+
+This installs all dependencies, Playwright browsers, verifies TypeScript compilation, runs all tests, and creates local directories.
+
+### Step 2: Create Discord Bots
+
+Go to [Discord Developer Portal](https://discord.com/developers/applications):
+
+1. Create 4 applications: **Absolute**, **Athena**, **Hermes**, **Artemis**
+2. For each: Bot → **Reset Token** → copy the token
+3. For each: Bot → enable **MESSAGE CONTENT INTENT**
+4. For each: OAuth2 → URL Generator → select `bot` scope → select permissions: Send Messages, Read Messages, Attach Files, Use Slash Commands → copy invite URL → add to your server
+
+### Step 3: Create Discord Channels
+
+In your server, create:
+- `#athena` — dedicated career work
+- `#daily-job-report` — Artemis posts daily reports here
+
+### Step 4: Configure OpenClaw
+
+```bash
+node scripts/configure-openclaw.js
+```
+
+This interactive script asks for your bot tokens, server ID, and channel IDs, then generates the `~/.openclaw/openclaw.json` config.
+
+### Step 5: Configure Artemis Email
+
+Create a dedicated Gmail for job applications, then:
+
+```bash
+cd agents/artemis/plugin
+npx tsx ../scripts/setup-email.ts your-email@gmail.com "your-app-password" gmail
+```
+
+For Gmail, use an [App Password](https://myaccount.google.com/apppasswords) (requires 2-Step Verification enabled).
+
+### Step 6: Add Companies
+
+```bash
+cd agents/artemis/plugin
+npx tsx ../scripts/seed-companies.ts
+```
+
+This adds a default set of tech companies. Edit the script to customize.
+
+### Step 7: Start
+
+```bash
+openclaw start
+```
+
+All 4 agents come online in Discord. Artemis runs daily at 9 AM ET automatically.
 
 ## Infrastructure
 
 | Layer | Technology |
 |-------|-----------|
-| Runtime | OpenClaw (all agents as TypeScript plugins) |
-| LLM | Claude (Anthropic API via OpenClaw) |
+| Runtime | OpenClaw (TypeScript plugins) |
+| LLM | Claude via Anthropic API |
 | Database | Obsidian Vault (markdown + YAML frontmatter) |
-| Storage adapter | obsidian-adapter (shared across all agents) |
-| Browser automation | Playwright |
-| Email monitoring | IMAP (imapflow) |
-| Inter-agent comms | Discord bot mentions |
-| Scheduling | macOS launchd (9 AM ET daily) |
-| Encryption | AES-256-GCM (macOS Keychain-derived key) |
-
-## Discord Channels
-
-| Channel | Purpose |
-|---------|---------|
-| `#general` | All agents respond when mentioned |
-| `#athena` | Dedicated Athena career work |
-| `#daily-job-report` | Artemis daily reports + application reviews |
+| Storage | obsidian-adapter (shared library) |
+| Browser | Playwright (scraping + form filling) |
+| Email | IMAP via imapflow |
+| Communication | Discord bot mentions |
+| Scheduling | macOS launchd |
+| Encryption | AES-256-GCM |
 
 ## Design Principles
 
-1. **One human touchpoint** — Isaac approves before any application is submitted. Everything else is autonomous.
-2. **Agent isolation** — Each agent is a self-contained plugin with its own repo, workspace, and database. No shared state beyond Discord messages.
-3. **Discord as message bus** — Agents communicate via Discord mentions. Adding a new agent = adding it to Discord, not rewiring infrastructure.
-4. **Obsidian as database** — All data visible and editable through the Obsidian UI. No hidden state.
-5. **API-first scraping** — Use JSON APIs (Greenhouse, Lever, Ashby, Amazon) when available. Fall back to Playwright only when necessary.
+1. **One human touchpoint** — approve before submit. Everything else is autonomous.
+2. **Agent isolation** — each agent has its own plugin, workspace, and database partition. No shared state beyond Discord.
+3. **Discord as message bus** — agents communicate via mentions. Adding an agent = adding it to Discord.
+4. **Obsidian as database** — all data visible and editable in the Obsidian UI.
+5. **API-first scraping** — use JSON APIs when available, Playwright as fallback.
+
+## Development
+
+```bash
+# Run tests for a specific agent
+cd agents/artemis/plugin && npm test
+
+# Type check
+cd agents/artemis/plugin && npx tsc --noEmit
+
+# Watch mode
+cd agents/artemis/plugin && npm run test:watch
+
+# Manual scan (Artemis)
+cd agents/artemis/plugin && npx tsx ../scripts/test-scan.ts
+```
 
 ## Stats
 
@@ -209,11 +261,10 @@ Automated job hunter. Scrapes career pages daily, scores jobs against the user p
 |--------|-------|
 | Agents | 4 |
 | Total MCP tools | 74 |
-| Database entities | 30+ |
 | Companies tracked | 12 |
 | Daily jobs scanned | ~1,200 |
-| Tests passing | 163 (Artemis) + agent-specific |
+| Tests | 163+ |
 
 ---
 
-*"The strength of the many, guided by the vision of one."* — Absolute
+*"The strength of the many, guided by the vision of one."*
